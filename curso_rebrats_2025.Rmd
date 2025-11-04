@@ -1,0 +1,573 @@
+---
+title: "Curso RebrATS 2025"
+subtitle: "Acesso aos Dados da SABEIS via FTP utilizando R"
+author: "Felipe Ferré e Amanda Lyrio"
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"
+output:
+  ioslides_presentation:
+    template: quarterly-report.html
+    widescreen: true
+    smaller: true
+    logo: "img/sabeis01.png"
+    css: "styles.css"
+    transition: "default"  # Adicione esta linha
+runtime: shiny
+---
+
+ <!-- veja mais https://bookdown.org/yihui/rmarkdown/ioslides-presentation.html -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                      fig.width = 20, fig.height = 5.6, fig.align = "center")
+library(DT)
+```
+
+<div class="footer">SABEIS - DGITS/SECTICS/MS</div>
+
+# Sobre o Curso
+
+## Oferta
+
+<div class="callout">
+<strong>Curso:</strong> Acesso aos Dados da SABEIS via FTP utilizando a Linguagem R  
+<strong>Grupo Elaborador:</strong> Departamento de Gestão e Incorporação de Tecnologias em Saúde (DGITS/SECTICS/MS)  
+<strong>Docentes:</strong> Felipe Ferré e Amanda Lyrio  
+<strong>Monitores:</strong> Mariá Pereira, Jéssica Barreto, Laís Lessa e Michael Ruberson  
+<strong>Carga Horária:</strong> 12 horas · <span class="badge">25 vagas</span>
+</div>
+
+<br>
+
+**Público-alvo:** Profissionais dos NATS com experiência prévia em R, interessados em ampliar autonomia e agilidade no acesso e tratamento de dados da SABEIS para subsidiar análises e estudos de ATS.
+
+**Pré-requisito:** Teste prático para comprovar domínio básico de R.  
+
+**Material sugerido:** Apostila do curso.  
+
+## Atividade
+- Conexão à SABEIS por FTP.  
+- Download, estruturação e leitura dos dados em R.  
+- Estimativas de demanda aferida em AIO.  
+- Avaliação pós-incorporação.
+
+**Objetivo**  
+Capacitar participantes a acessar e manipular dados da SABEIS via FTP em R para fortalecer análises em ATS.
+
+**Material necessário**  
+- Computador com internet.  
+- R e RStudio instalados.
+
+## Conteúdo programático
+
+<!-- <div class="columns"> -->
+<!-- <div class="col"> -->
+
+**05/11 – manhã (8-12h)**  
+Fundamentos práticos dos dados ambulatoriais do SUS e organização do repositório SABEIS.
+
+**05/11 – tarde (14-18h)**  
+ETL de dados tabulados via FTP e organização em repositórios estruturados (RData e SQL).
+
+<!-- </div> -->
+<!-- <div class="col"> -->
+
+<!-- **05/11 – manhã**   -->
+<!-- Prática em grupo: critérios de seleção de usuários do SUS e extração de dados para construção de coortes. -->
+<!-- </div> -->
+<!-- </div> -->
+
+## Referências
+
+- FERRÉ, FELIPE; DE OLIVEIRA, GUSTAVO ; DE QUEIROZ, MARIANA ; GONÇALVES, FLÁVIO . Sala de Situação aberta com dados administrativos para gestão de Protocolos Clínicos e Diretrizes Terapêuticas de tecnologias providas pelo SUS. In: Anais Principais do Simpósio Brasileiro de Computação Aplicada à Saúde, 2020, Brasil. Anais Principais do Simpósio Brasileiro de Computação Aplicada à Saúde (SBCAS 2020). p. 392. [link](https://sol.sbc.org.br/index.php/sbcas/article/view/11530) 
+- Felipe Ferré. Modelagem e gestão de banco de dados com SQL e integração com o R. In: Erika Santos de Aragão; Luís Eugenio Portela Fernandes de Souza; Marcio Santos da Natividade; Vinícius de Araújo Mendes. (Org.). Avaliação de impacto das políticas de saúde: um guia para o SUS. 1ed.Brasília: Editora MS, 2023, v. , p. 1-715. [link](https://bvsms.saude.gov.br/bvs/publicacoes/avaliacao_impacto_politicas_saude_guia_sus.pdf)
+- [Sabeis - ETL](https://rpubs.com/sabeis/etl)
+
+### Tabelas: 
+
+[GitHUB Sabeis - BD Geral](https://github.com/sabeis-ats/bd_geral/).
+
+
+# Introdução aos dados abertos do SUS e à SABEIS
+
+## A estratégia de disseminação TabNet/TabWin
+
+Acesse o [sítio do TabNet](https://datasus.saude.gov.br/informacoes-de-saude-tabnet/) 
+para conhecer o elenco de informações disponíveis segundo:
+
+- Indicadores de Saúde e Pactuações
+- Assistência à Saúde
+- Epidemiológicas e Morbidade
+- Rede Assistencial
+- Estatísticas Vitais
+- Demográficas e Socioeconômicas
+- Inquéritos e Pesquisas
+- Saúde Suplementar (ANS)
+- Informações Financeiras
+- Estatísticas de acesso ao TABNET
+
+## TabNet - Assistência à Saúde
+
+- [Produção Hospitalar (SIH/SUS)](https://datasus.saude.gov.br/acesso-a-informacao/producao-hospitalar-sih-sus/)
+- [Produção Ambulatorial (SIA/SUS)](https://datasus.saude.gov.br/acesso-a-informacao/producao-ambulatorial-sia-sus/)
+- [Imunizações – desde 1994](https://datasus.saude.gov.br/acesso-a-informacao/imunizacoes-desde-1994/)
+- [Atenção Básica – Saúde da Família – de 1998 a 2015](https://datasus.saude.gov.br/atencao-basica-saude-da-familia-de-1998-a-2015/)
+- [Vigilância Alimentar e Nutricional](https://datasus.saude.gov.br/acesso-a-informacao/vigilancia-alimentar-e-nutricional/)
+
+## TabNet - Produção Ambulatorial
+
+- [Por local de atendimento - a partir de 2008](http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sia/cnv/qabr.def)
+- Por local de atendimento - de 1994 a 2007
+- Por local de residência - a partir de 2008
+- Por gestor - a partir de 2008
+
+## TabNet - Navegação
+
+- Linha (p.ex., Região, UF, Procedimento, Ano/mês de processamento)
+- Coluna (p.ex, Grupo de Procedimento, Esfera Jurídica)
+- Conteúdo (Qtd. aprovada, Valor aprovado)
+- Período
+- Seleções disponíveis (filtros)
+
+## FTP e repositórios públicos do SUS
+
+O **FTP (File Transfer Protocol)** é um protocolo usado para **transferir arquivos entre servidores e computadores**.  
+No contexto do **SUS (Sistema Único de Saúde)**, o FTP é utilizado como **repositório público de dados**, permitindo que pesquisadores, gestores e analistas baixem grandes bases de informações oficiais.
+
+| Sigla | Descrição | URL |
+|:------|:-----------|:----|
+| **FTP** | Protocolo de Transferência de Arquivos, usado para mover arquivos entre servidores na internet. Repositório de dados públicos do SUS para download via FTP. | [ftp://ftp.datasus.gov.br/dissemin/publicos/](ftp://ftp.datasus.gov.br/dissemin/publicos/) |
+| **SIA** | Sistema de Informações Ambulatoriais do SUS, gerencia dados sobre atendimentos ambulatoriais. | [ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/](ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/) |
+| **SIH** | Sistema de Informações Hospitalares do SUS, registra dados de internações e procedimentos hospitalares. | [ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/200801_/Dados/](ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/200801_/Dados/) |
+
+
+## FTP e repositórios públicos do SUS
+
+| Sigla | Descrição | URL |
+|:------|:-----------|:----|
+| **SIM** | Sistema de Informações sobre Mortalidade, coleta dados de óbitos registrados no Brasil. | [ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DORES/](ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DORES/) |
+| **SINAN** | Sistema de Informação de Agravos de Notificação, monitora doenças e agravos de notificação compulsória. | [ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/](ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/) |
+| **SINASC** | Sistema de Informações sobre Nascidos Vivos, coleta dados sobre nascimentos no Brasil. | [ftp://ftp.datasus.gov.br/dissemin/publicos/](ftp://ftp.datasus.gov.br/dissemin/publicos/) |
+| **CNES** | Cadastro Nacional de Estabelecimentos de Saúde, registra informações sobre instituições de saúde no Brasil. | [ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/](ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/) |
+| **OpenDataSUS** | Portal de dados abertos do SUS, com acesso a diversos conjuntos de dados. | [https://opendatasus.saude.gov.br/](https://opendatasus.saude.gov.br/) |
+
+## FTP e repositórios públicos do SUS - Outas fontes
+
+| Sigla | Descrição | URL |
+|:------|:-----------|:----|
+| **SIDRA** | Sistema IBGE de Recuperação Automática, acesso a dados de pesquisas como a PNAD. | [https://sidra.ibge.gov.br/pesquisa/pnadct/tabelas](https://sidra.ibge.gov.br/pesquisa/pnadct/tabelas) |
+| **PNAD** | Pesquisa Nacional por Amostra de Domicílios, coleta dados socioeconômicos e demográficos no Brasil. | — |
+| **ANVISA** | Portal de dados públicos da ANVISA, com informações regulatórias e sanitárias. | [https://dados.anvisa.gov.br/](https://dados.anvisa.gov.br/), [https://dados.gov.br/dados/organizacoes/visualizar/agencia-nacional-de-vigilancia-sanitaria-anvisa](https://dados.gov.br/dados/organizacoes/visualizar/agencia-nacional-de-vigilancia-sanitaria-anvisa) |
+| **SISAB** | Sistema de Informação em Saúde para a Atenção Básica (SISAB), Coleta de Dados Simplificado (CDS) e Prontuário Eletrônico do Cidadão (PEC). | [https://sisab.saude.gov.br/](https://sisab.saude.gov.br/) |
+
+Contudo, o  **FTP do DATASUS** continua sendo uma das principais fontes de dados brutos utilizados em análises, estudos e políticas públicas na área da saúde.
+
+
+
+
+
+# Fundamentos práticos dos dados ambulatoriais do SUS e organização do repositório da SABEIS.
+
+## Intalando bibliotecas
+
+```{r echo=TRUE, include=TRUE}
+if (!requireNamespace("readr", quietly=TRUE)) install.packages("readr")
+if (!requireNamespace("dplyr", quietly=TRUE)) install.packages("dplyr")
+if (!requireNamespace("stringr", quietly=TRUE)) install.packages("stringr")
+if (!requireNamespace("tidyr", quietly=TRUE)) install.packages("tidyr")
+if (!requireNamespace("RCurl", quietly=TRUE)) install.packages("RCurl")
+if (!requireNamespace("curl", quietly=TRUE)) install.packages("curl")
+if (!requireNamespace("data.table", quietly=TRUE)) install.packages("data.table")
+if (!requireNamespace("DT", quietly=TRUE)) install.packages("DT")
+library(readr); library(dplyr); library(stringr); library(tidyr)
+library(DT); library(RCurl); library(data.table); library(shiny)
+```
+
+- Verifica se o pacote `RCurl` está instalado.  
+- Caso não esteja, instala automaticamente.  
+- Em seguida, carrega o pacote.
+
+# Operações de ETL de dados tabulados a partir do FTP e organização em repositórios estruturados (RData e SQL).
+
+## listar csv a partir do FTP
+
+**Código e resultado**
+
+```{r echo=TRUE}
+library(curl)
+url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/"
+userpwd <- "livre:12345"
+h <- new_handle(userpwd = userpwd, dirlistonly = TRUE)
+con <- curl(url, handle = h)
+arquivos <- readLines(con)
+close(con)
+head(arquivos)
+```
+
+## listar e baixar csv a partir do FTP
+
+**Explicação do código**
+
+O código retorna no console um vetor de strings, cada elemento representando um arquivo ou pasta disponível no diretório remoto `/srv/ftp/dadosabertos` do servidor informado.
+
+- `url`: endereço do servidor SFTP, incluindo host, porta (`7891`) e caminho do diretório (`/srv/ftp/dadosabertos/`).  
+- `userpwd`: credenciais no formato `"usuário:senha"`.
+- `getURL()` acessa a URL informada.  
+- `userpwd = userpwd`: passa as credenciais de login.  
+- `ftp.use.epsv = FALSE`: desabilita *Extended Passive Mode*, evitando problemas de compatibilidade.  
+- `dirlistonly = TRUE`: retorna apenas a lista de arquivos/pastas no diretório remoto.
+- `strsplit()` divide o texto retornado em linhas, separando cada arquivo/pasta.  
+- `unlist()` transforma a lista resultante em vetor.  
+- `print/head(arquivos)` exibe a lista final de arquivos.
+
+
+# Atividade prática em grupo: definição de critérios de seleção de usuários do SUS e extração de dados para construção de coortes.
+
+## baixar csv a partir do FTP
+
+**Código e resultado**
+
+O script conecta-se ao servidor SFTP, autentica com usuário e senha, baixa o arquivo `tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz` e o salva no computador no diretório de trabalho atual.
+
+
+```{r echo=TRUE}
+library(curl)
+url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+userpwd <- "livre:12345"
+destino <- "tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+h <- new_handle(userpwd = userpwd)
+# baixa em binário
+curl_download(url, destfile = destino, mode = "wb", handle = h)
+cat("Arquivo salvo em:", destino, "\n")
+```
+
+## Baixando via SFTP/FTP com `curl`
+
+Este exemplo mostra como baixar um arquivo remoto de um servidor SFTP e salvá-lo localmente no computador usando o pacote `curl`.
+
+```r
+library(curl)
+
+url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+userpwd <- "livre:12345"
+destino <- "tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+
+# Cria o handle com credenciais
+h <- new_handle(userpwd = userpwd)
+
+# Faz o download binário
+curl_download(url, destfile = destino, mode = "wb", handle = h)
+
+# Mensagem de confirmação
+cat("Arquivo salvo em:", destino, "\n")
+```
+
+<!-- ## Baixando via SFTP/FTP com `RCurl` -->
+
+<!-- * `getBinaryURL()` faz o download do arquivo remoto em formato binário. -->
+<!-- * `writeBin()` grava os bytes baixados em um arquivo local (`destino`). -->
+
+<!-- ```{r echo=TRUE} -->
+<!-- cat("Arquivo salvo em:", destino, "\n") -->
+<!-- ``` -->
+
+* Imprime no console a mensagem confirmando onde o arquivo foi salvo.
+
+## Leitura do arquivo csv.gz baixado
+
+**Código e resultado**
+
+```{r echo=TRUE}
+library(data.table)
+
+arquivo <- "tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+df <- fread(arquivo)
+
+# Ver estrutura
+dim(df)   # número de linhas e colunas
+df[1:3,9:11]  # primeiras linhas
+```
+
+## Leitura do arquivo csv.gz baixado
+
+Use `data.table::fread()` para leitura eficiente de arquivos grandes. 
+
+```r
+if (!requireNamespace("data.table", quietly=TRUE)) install.packages("data.table")
+library(data.table)
+```
+
+* Carregar em dataframe (data.table)
+
+```r
+df <- fread(arquivo)
+```
+
+`fread()` lê arquivos compactados `.gz` diretamente, sem necessidade de descompactar antes.
+
+Se os arquivos ocuparem muita memória, use o pacote `bigmemory` ou `ff`. 
+Porém, na prática `fread` é otimizado para milhões de linhas.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Navegue em outras diretrizes
+
+```{r tab2}
+# ---- listar 20k-90k e rotular por pos5_pos6 ----
+# Fonte remota
+url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/"
+userpwd <- "livre:12345"
+
+h <- new_handle(userpwd = userpwd, dirlistonly = TRUE)
+con <- curl(url, handle = h)
+arquivos <- readLines(con)
+close(con)
+
+# Filtragem de arquivos CSV compactados
+arquivos <- arquivos[nzchar(arquivos) & grepl("\\.csv\\.gz$", arquivos, ignore.case = TRUE)]
+
+# Contagem (3ª parte separada por ponto)
+ponto <- tstrsplit(arquivos, "\\.")
+contagens <- as.integer(ponto[[3]])
+
+# Filtro: 20k–90k
+ok  <- !is.na(contagens) & contagens >= 20000L & contagens <= 90000L
+sel <- arquivos[ok]
+
+# Rótulo: posições 5 e 6 separadas por "_"
+base <- sub("\\..*$", "", sel)
+us   <- tstrsplit(base, "_")
+rotulo <- if (length(us) >= 6) paste0(us[[5]], "_", us[[6]]) else rep(NA_character_, length(sel))
+
+# Tabela "lista": arquivo, registros e rótulo
+lista <- data.table(
+  arquivo   = sel,
+  registros = contagens[ok],
+  rotulo    = rotulo
+)[!is.na(rotulo)][order(registros)]
+
+# ---- UI ----
+fluidRow(
+  column(
+    width = 3,
+    selectInput(
+      "sel_arquivo",
+      "Escolha pela sigla do PCDT:",
+      choices = setNames(lista$arquivo, lista$rotulo),
+      selected = if (nrow(lista)) lista$arquivo[1] else NULL
+    )
+  ),
+  column(width = 8, verbatimTextOutput("info_sel"))
+)
+
+DTOutput("tabela_df")
+
+# ---- Server ----
+output$info_sel <- renderText({
+  req(input$sel_arquivo)
+  i <- match(input$sel_arquivo, lista$arquivo)
+  paste0(
+    "Arquivo: ", lista$arquivo[i], "\n",
+    "Rótulo: ",  lista$rotulo[i],  "\n",
+    "Registros: ", format(lista$registros[i], big.mark = ".", decimal.mark = ",")
+  )
+})
+
+# deps
+library(curl)
+library(data.table)
+
+# assume: url = "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/"
+# assume: userpwd = "livre:12345"
+
+carrega_df <- function(nome) {
+  dest <- file.path(getwd(), nome)
+  if (!file.exists(dest)) {
+    dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+    h <- new_handle(userpwd = userpwd)
+    curl_download(paste0(url, nome), destfile = dest, mode = "wb", handle = h)
+  }
+  data.table::fread(dest)
+}
+
+# Se quiser evitar recriar o handle a cada chamada, crie-o uma vez e passe por fechamento:
+mk_carrega_df <- function(base_url, userpwd) {
+  h <- new_handle(userpwd = userpwd)
+  force(base_url); force(h)
+  function(nome) {
+    dest <- file.path(getwd(), nome)
+    if (!file.exists(dest)) {
+      dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+      curl_download(paste0(base_url, nome), destfile = dest, mode = "wb", handle = h)
+    }
+    data.table::fread(dest)
+  }
+}
+
+# carrega_df <- mk_carrega_df(url, userpwd)
+
+
+df_reactive <- reactive({
+  req(input$sel_arquivo)
+  carrega_df(input$sel_arquivo)
+})
+
+output$tabela_df <- renderDT(
+  df_reactive(),
+  options = list(pageLength = 4, scrollX = TRUE, deferRender = TRUE),
+  filter = "top",
+  rownames = FALSE,
+  server = TRUE
+)
+```
+
+## Enriquecendo atributos - Diretriz
+
+```{r echo=TRUE}
+library(readr)
+
+td_diretriz_cnv <- read_csv(
+  "https://raw.githubusercontent.com/sabeis-ats/bd_geral/refs/heads/main/td_diretriz_cnv.csv"
+)
+
+as.data.frame(td_diretriz_cnv)[8:12,5:7]
+```
+
+## Enriquecendo atributos - Doença
+
+```{r echo=TRUE}
+library(readr)
+
+td_doenca_cid10 <- read_csv(
+  "https://raw.githubusercontent.com/sabeis-ats/bd_geral/refs/heads/main/td_doenca_cid10.csv"
+)
+
+as.data.frame(td_doenca_cid10)[8:12,c("co_cid","no_cid","co_capitulo")]
+```
+
+## Enriquecendo atributos - Procedimento
+
+```{r echo=TRUE}
+library(readr)
+
+td_sigtap <- read_csv(
+  "https://raw.githubusercontent.com/sabeis-ats/bd_geral/refs/heads/main/td_sigtap.csv"
+)
+
+as.data.frame(td_sigtap)[8:12,c("co_procedimento","no_procedimento")]
+```
+
+
+## Enriquecendo atributos - Território
+
+```{r echo=TRUE}
+library(readr)
+
+td_municipio <- read_csv(
+  "https://raw.githubusercontent.com/sabeis-ats/bd_geral/refs/heads/main/municipio_regiao_saude_amazonia_legal_ips.csv"
+)
+
+as.data.frame(td_municipio)[8:12,c("Codigo_Municipio","Municipio","UF_x")]
+```
+
+## Cruzando tabelas
+
+```{r echo=TRUE}
+
+# csvs: vetor de nomes de arquivos já retornado por listar_csv_py(...)
+
+# 1) tabela com código (3 dígitos) extraído da 5ª parte do nome + qt_registro após o primeiro ponto
+codigos_arquivos <- tibble(no_arquivo = arquivos) %>%
+  mutate(
+    quinta_parte = str_split(no_arquivo, "_", simplify = TRUE)[, 5],
+    codigo = str_extract(quinta_parte, "^[0-9]{3}"),
+    qt_registro = str_extract(no_arquivo, "(?<=\\.)[0-9]+")
+  ) %>%
+  filter(!is.na(codigo))
+```
+
+## Cruzando tabelas
+
+```{r echo=TRUE}
+# 2) normalizar nu_diretriz para 3 dígitos
+if (is.numeric(td_diretriz_cnv$nu_diretriz)) {
+  tdc <- td_diretriz_cnv %>%
+    mutate(nu_diretriz_chr = sprintf("%03d", as.integer(nu_diretriz)))
+} else {
+  tdc <- td_diretriz_cnv %>%
+    mutate(nu_diretriz_chr = str_pad(str_extract(nu_diretriz, "\\d+"), 3, pad = "0"))
+}
+```
+
+## Cruzando tabelas
+
+```{r echo=TRUE}
+# 3) join e seleção de colunas pedidas
+pcdt <- codigos_arquivos %>%
+  inner_join(tdc, by = c("codigo" = "nu_diretriz_chr")) %>%
+  mutate(
+    co_cid = str_replace_all(co_cid, ",", ", ")
+  ) %>%
+  select(
+    nu_diretriz, no_diretriz, co_cid, sg_pcdt, no_diretriz10, sg_tipo,
+    no_arquivo, qt_registro
+  )
+
+head(pcdt,3)
+```
+
+## Navegue pelos df carregados
+
+```{r tb_dfd}
+# UI
+selectInput(
+  "df_sel", "",
+  choices = c("td_municipio", "td_sigtap", "td_diretriz_cnv", "td_doenca_cid10","pcdt"),
+  selected = "td_municipio"
+)
+DTOutput("tabela_territorio")
+
+# SERVER
+dfs <- list(
+  td_municipio   = td_municipio,
+  td_sigtap      = td_sigtap,
+  td_diretriz_cnv= td_diretriz_cnv,
+  td_doenca_cid10= td_doenca_cid10,
+  pcdt = pcdt
+)
+
+dataset_sel <- reactive({
+  req(input$df_sel)
+  dfs[[ input$df_sel ]]
+})
+
+output$tabela_territorio <- renderDT(
+  dataset_sel(),
+  options = list(pageLength = 2, scrollX = TRUE, deferRender = TRUE),
+  filter = "top",
+  rownames = FALSE,
+  server = TRUE
+)
+
+```
+
+# Informações complementares
+
+## Referências complementares
+
+- Ferré, Felipe. Infoestrutura para apoio à decisão estratégica no SUS. In: Alethele de Oliveira Santo; Luciana Tolêdo Lopes. (Org.). Coleção Covid-19. 1ed.Brasília: Conselho Nacional de Secretários de Saúde, 2021, v. 6, p. 114-135. [link](https://bit.ly/35D0k0j)
+- Prova de conceito SABEIS de 2019 [painel](https://labxss.shinyapps.io/sabeis_pcdt3/)
+- Prova de conceito SABEIS de 2019 [wiki](https://bookdown.org/labxss/sabeis_pcdt5/)
+- Prova de conceito SABEIS de 2019 [git](https://github.com/labxss/sabeis_pcdt)
