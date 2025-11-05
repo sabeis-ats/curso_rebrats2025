@@ -47,7 +47,7 @@ library(DT)
 ## Atividade
 - Conexão à SABEIS por FTP.  
 - Download, estruturação e leitura dos dados em R.  
-- Estimativas de demanda aferida em AIO.  
+- Demanda aferida.  
 - Avaliação pós-incorporação.
 
 **Objetivo**  
@@ -78,6 +78,7 @@ ETL de dados tabulados via FTP e organização em repositórios estruturados (RD
 
 ## Referências
 
+- [Apresentação](https://github.com/sabeis-ats/curso_rebrats2025)
 - FERRÉ, FELIPE; DE OLIVEIRA, GUSTAVO ; DE QUEIROZ, MARIANA ; GONÇALVES, FLÁVIO . Sala de Situação aberta com dados administrativos para gestão de Protocolos Clínicos e Diretrizes Terapêuticas de tecnologias providas pelo SUS. In: Anais Principais do Simpósio Brasileiro de Computação Aplicada à Saúde, 2020, Brasil. Anais Principais do Simpósio Brasileiro de Computação Aplicada à Saúde (SBCAS 2020). p. 392. [link](https://sol.sbc.org.br/index.php/sbcas/article/view/11530) 
 - Felipe Ferré. Modelagem e gestão de banco de dados com SQL e integração com o R. In: Erika Santos de Aragão; Luís Eugenio Portela Fernandes de Souza; Marcio Santos da Natividade; Vinícius de Araújo Mendes. (Org.). Avaliação de impacto das políticas de saúde: um guia para o SUS. 1ed.Brasília: Editora MS, 2023, v. , p. 1-715. [link](https://bvsms.saude.gov.br/bvs/publicacoes/avaliacao_impacto_politicas_saude_guia_sus.pdf)
 - [Sabeis - ETL](https://rpubs.com/sabeis/etl)
@@ -88,6 +89,17 @@ ETL de dados tabulados via FTP e organização em repositórios estruturados (RD
 
 
 # Introdução aos dados abertos do SUS e à SABEIS
+
+## A Sala Aberta de Inteligência em Saúde (SABEIS)
+
+- Metodologia de extração, transformação, carga e curadoria de dados.
+- Iniciou em 2019 no âmbito do DGITS/SECTICS/MS (Secretaria Executiva da Conitec).
+- Usa apenas software livre e dados abertos.
+- É mantida por profissionais de saúde a serviço do SUS com tecnologia robusta e simples.
+- Validada com dados oficiais a partir de marcadores de produção.
+- Fonte principal: Ministério da Saúde - FTP de dados ambulatoriais do SUS.
+- Foco em medicamentos do Componente Especializado da Assistência Farmacêutica.
+- Prima em favorecer o diálogo com a sociedade civil e a gestão partindo de dados comuns e metodologia transparente.
 
 ## A estratégia de disseminação TabNet/TabWin
 
@@ -146,7 +158,7 @@ No contexto do **SUS (Sistema Único de Saúde)**, o FTP é utilizado como **rep
 |:------|:-----------|:----|
 | **SIM** | Sistema de Informações sobre Mortalidade, coleta dados de óbitos registrados no Brasil. | [ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DORES/](ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DORES/) |
 | **SINAN** | Sistema de Informação de Agravos de Notificação, monitora doenças e agravos de notificação compulsória. | [ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/](ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/) |
-| **SINASC** | Sistema de Informações sobre Nascidos Vivos, coleta dados sobre nascimentos no Brasil. | [ftp://ftp.datasus.gov.br/dissemin/publicos/](ftp://ftp.datasus.gov.br/dissemin/publicos/) |
+| **SINASC** | Sistema de Informações sobre Nascidos Vivos, coleta dados sobre nascimentos no Brasil. | [ftp://ftp.datasus.gov.br/dissemin/publicos/SINASC/1996_/Dados/DNRES/](ftp://ftp.datasus.gov.br/dissemin/publicos/SINASC/1996_/Dados/DNRES/) |
 | **CNES** | Cadastro Nacional de Estabelecimentos de Saúde, registra informações sobre instituições de saúde no Brasil. | [ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/](ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/) |
 | **OpenDataSUS** | Portal de dados abertos do SUS, com acesso a diversos conjuntos de dados. | [https://opendatasus.saude.gov.br/](https://opendatasus.saude.gov.br/) |
 
@@ -161,10 +173,6 @@ No contexto do **SUS (Sistema Único de Saúde)**, o FTP é utilizado como **rep
 
 Contudo, o  **FTP do DATASUS** continua sendo uma das principais fontes de dados brutos utilizados em análises, estudos e políticas públicas na área da saúde.
 
-
-
-
-
 # Fundamentos práticos dos dados ambulatoriais do SUS e organização do repositório da SABEIS.
 
 ## Intalando bibliotecas
@@ -174,15 +182,15 @@ if (!requireNamespace("readr", quietly=TRUE)) install.packages("readr")
 if (!requireNamespace("dplyr", quietly=TRUE)) install.packages("dplyr")
 if (!requireNamespace("stringr", quietly=TRUE)) install.packages("stringr")
 if (!requireNamespace("tidyr", quietly=TRUE)) install.packages("tidyr")
-if (!requireNamespace("RCurl", quietly=TRUE)) install.packages("RCurl")
+# if (!requireNamespace("RCurl", quietly=TRUE)) install.packages("RCurl")
 if (!requireNamespace("curl", quietly=TRUE)) install.packages("curl")
 if (!requireNamespace("data.table", quietly=TRUE)) install.packages("data.table")
 if (!requireNamespace("DT", quietly=TRUE)) install.packages("DT")
 library(readr); library(dplyr); library(stringr); library(tidyr)
-library(DT); library(RCurl); library(data.table); library(shiny)
+library(DT); library(data.table); library(shiny); library(curl)
 ```
 
-- Verifica se o pacote `RCurl` está instalado.  
+- Verifica se o pacote `curl` está instalado.  
 - Caso não esteja, instala automaticamente.  
 - Em seguida, carrega o pacote.
 
@@ -226,14 +234,14 @@ O código retorna no console um vetor de strings, cada elemento representando um
 
 **Código e resultado**
 
-O script conecta-se ao servidor SFTP, autentica com usuário e senha, baixa o arquivo `tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz` e o salva no computador no diretório de trabalho atual.
+O script conecta-se ao servidor SFTP, autentica com usuário e senha, baixa o arquivo `0teste_058_fen_subgrupo604.20251104.80541.csv.gz` e o salva no computador no diretório de trabalho atual.
 
 
 ```{r echo=TRUE}
 library(curl)
-url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
 userpwd <- "livre:12345"
-destino <- "tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+destino <- "0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
 h <- new_handle(userpwd = userpwd)
 # baixa em binário
 curl_download(url, destfile = destino, mode = "wb", handle = h)
@@ -247,9 +255,9 @@ Este exemplo mostra como baixar um arquivo remoto de um servidor SFTP e salvá-l
 ```r
 library(curl)
 
-url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
 userpwd <- "livre:12345"
-destino <- "tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+destino <- "0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
 
 # Cria o handle com credenciais
 h <- new_handle(userpwd = userpwd)
@@ -279,7 +287,7 @@ cat("Arquivo salvo em:", destino, "\n")
 ```{r echo=TRUE}
 library(data.table)
 
-arquivo <- "tf_sia_200801_pa_058_fen_subgrupo604.20250907.80541.csv.gz"
+arquivo <- "0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
 df <- fread(arquivo)
 
 # Ver estrutura
@@ -306,21 +314,6 @@ df <- fread(arquivo)
 
 Se os arquivos ocuparem muita memória, use o pacote `bigmemory` ou `ff`. 
 Porém, na prática `fread` é otimizado para milhões de linhas.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## Navegue em outras diretrizes
 
@@ -432,6 +425,51 @@ output$tabela_df <- renderDT(
   server = TRUE
 )
 ```
+
+## dplyr para transformações de dados
+
+### O que é o **dplyr**
+
+`dplyr` é um pacote do R usado para **manipular e resumir dados** de forma simples e rápida.
+Ele segue uma lógica parecida com a do SQL, mas com uma sintaxe mais legível.
+
+---
+
+### Principais funções
+
+| Função        | Função prática                                     |
+| ------------- | -------------------------------------------------- |
+| `filter()`    | Seleciona linhas com base em condições.            |
+| `select()`    | Escolhe colunas específicas.                       |
+| `mutate()`    | Cria ou altera variáveis.                          |
+| `arrange()`   | Ordena linhas.                                     |
+| `group_by()`  | Agrupa dados para resumo.                          |
+| `summarise()` | Calcula estatísticas (ex.: soma, média, contagem). |
+
+---
+
+### Exemplo simples
+
+```r
+library(dplyr)
+
+dados %>%
+  filter(idade > 18) %>%           # mantém apenas adultos
+  mutate(faixa = ifelse(idade > 60, "idoso", "adulto")) %>%  # cria nova coluna
+  group_by(faixa) %>%
+  summarise(total = n())           # conta quantos há em cada faixa
+```
+
+Esse fluxo lê-se como uma sequência de etapas, conectadas pelo operador `%>%`, facilitando a leitura:
+**“Filtre, crie uma nova coluna, agrupe e resuma.”**
+
+---
+
+### Em resumo
+
+`dplyr` simplifica a análise de dados no R, tornando o código **mais claro, conciso e eficiente**, mesmo para quem não é programador avançado.
+
+
 
 ## Enriquecendo atributos - Diretriz
 
@@ -562,6 +600,325 @@ output$tabela_territorio <- renderDT(
 )
 
 ```
+
+## Demanda aferida.
+
+```{r vis1}
+library(shiny)
+library(curl)
+library(data.table)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+# ---- parâmetros de origem ----
+url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/"
+userpwd <- "livre:12345"
+
+# ---- listar arquivos ----
+h <- new_handle(userpwd = userpwd, dirlistonly = TRUE)
+con <- curl(url, handle = h)
+arquivos <- readLines(con)
+close(con)
+
+arquivos <- arquivos[nzchar(arquivos) & grepl("\\.csv\\.gz$", arquivos, ignore.case = TRUE)]
+ponto <- tstrsplit(arquivos, "\\.")
+contagens <- as.integer(ponto[[3]])
+ok  <- !is.na(contagens) & contagens >= 20000L & contagens <= 90000L
+sel <- arquivos[ok]
+
+base <- sub("\\..*$", "", sel)
+us   <- tstrsplit(base, "_")
+rotulo <- if (length(us) >= 6) paste0(us[[5]], "_", us[[6]]) else rep(NA_character_, length(sel))
+
+lista <- data.table(
+  arquivo   = sel,
+  registros = contagens[ok],
+  rotulo    = rotulo
+)[!is.na(rotulo)][order(registros)]
+
+# ---- UI ----
+fluidRow(
+  column(
+    width = 3,
+    selectInput(
+      "sel_arquivo",
+      "Escolha pela sigla do PCDT:",
+      choices = setNames(lista$arquivo, lista$rotulo),
+      selected = if (nrow(lista)) lista$arquivo[1] else NULL
+    )
+  )
+)
+
+plotOutput("serie_xy1", height = 280)
+
+# ---- função de leitura ----
+carrega_df <- function(nome) {
+  dest <- file.path(getwd(), nome)
+  if (!file.exists(dest)) {
+    dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+    h <- new_handle(userpwd = userpwd)
+    curl_download(paste0(url, nome), destfile = dest, mode = "wb", handle = h)
+  }
+  fread(dest)
+}
+
+# ---- server ----
+df_reactive <- reactive({
+  req(input$sel_arquivo)
+  carrega_df(input$sel_arquivo)
+})
+
+output$serie_xy1 <- renderPlot({
+  df <- df_reactive()
+  names(df) <- tolower(names(df))
+
+  s <- df %>%
+    filter(!is.na(nu_cnspcn)) %>%                           # apenas registros com usuário
+    mutate(mes = ymd(paste0(sprintf("%06d", as.integer(nu_competencia)), "01"))) %>%  # YYYYMM -> data
+    group_by(mes) %>%
+    summarise(usuarios = n_distinct(nu_cnspcn), .groups = "drop")
+
+  validate(need(nrow(s) > 0, "Sem dados após aplicar os filtros."))
+
+  ggplot(s, aes(x = mes, y = usuarios)) +
+    geom_line(linewidth = 0.5) +
+    geom_point(size = 1.6) +
+    labs(x = "Mês", y = "Usuários distintos") +
+    scale_x_date(
+      date_breaks = "1 month",
+      labels = function(x) ifelse(month(x) == 1, format(x, "%Y"), ""),
+      expand = c(0.01, 0.01)
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+      axis.ticks.x = element_line(color = "grey40"),
+      axis.ticks.length.x = unit(0.15, "cm")
+    )
+})
+```
+
+---
+
+### Explicação do trecho `dplyr` — Demanda aferida
+
+O código abaixo resume os dados para calcular o **número de usuários distintos por mês**. 
+Ele reproduz a lógica da query SQL:
+
+
+```r
+s <- df %>%
+  filter(!is.na(nu_cnspcn)) %>%                           # mantém registros com usuário identificado
+  mutate(
+    mes = ymd(paste0(sprintf("%06d", as.integer(nu_competencia)), "01"))
+  ) %>%                                                   # converte YYYYMM → data completa
+  group_by(mes) %>%
+  summarise(
+    usuarios = n_distinct(nu_cnspcn),                     # conta usuários únicos no mês
+    .groups = "drop"
+  )
+```
+
+```sql
+SELECT
+  nu_competencia,
+  COUNT(DISTINCT nu_cnspcn) AS usuarios
+FROM tf_sia_200801_pa_046_wil_subgrupo604
+GROUP BY 1
+ORDER BY 1;
+```
+---
+
+#### 1. `filter(!is.na(nu_cnspcn))`
+
+Remove linhas em que o identificador do usuário (`nu_cnspcn`) está ausente, garantindo contagem correta de indivíduos.
+
+#### 2. `mutate(mes = ...)`
+
+Cria a variável `mes` em formato de data:
+
+* `sprintf("%06d", ...)` garante que `nu_competencia` tenha sempre 6 dígitos (ex.: `202401`);
+* concatena `"01"` para formar uma data completa (`YYYYMM01`);
+* `ymd()` converte para tipo `Date`, permitindo uso no eixo X do gráfico.
+
+#### 3. `group_by(mes)` + `summarise()`
+
+Agrupa os registros por mês e calcula:
+
+* `n_distinct(nu_cnspcn)` → número de usuários distintos.
+
+`.groups = "drop"` evita manter o agrupamento no *data frame* final.
+
+---
+
+### Resultado
+
+O *data frame* `s` contém:
+
+* **`mes`** → data de referência (primeiro dia do mês de competência);
+* **`usuarios`** → número de usuários distintos naquele mês.
+
+Esse resumo alimenta o gráfico de “Demanda aferida”, que mostra a evolução mensal de usuários atendidos.
+
+
+## Avaliação pós-incorporação.
+
+```{r vis2}
+library(curl)
+library(data.table)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+# ---- parâmetros de origem ----
+url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/"
+userpwd <- "livre:12345"
+
+# ---- listar arquivos ----
+h <- new_handle(userpwd = userpwd, dirlistonly = TRUE)
+con <- curl(url, handle = h)
+arquivos <- readLines(con)
+close(con)
+
+arquivos <- arquivos[nzchar(arquivos) & grepl("\\.csv\\.gz$", arquivos, ignore.case = TRUE)]
+ponto <- tstrsplit(arquivos, "\\.")
+contagens <- as.integer(ponto[[3]])
+ok  <- !is.na(contagens) & contagens >= 20000L & contagens <= 90000L
+sel <- arquivos[ok]
+
+base <- sub("\\..*$", "", sel)
+us   <- tstrsplit(base, "_")
+rotulo <- if (length(us) >= 6) paste0(us[[5]], "_", us[[6]]) else rep(NA_character_, length(sel))
+
+lista <- data.table(
+  arquivo   = sel,
+  registros = contagens[ok],
+  rotulo    = rotulo
+)[!is.na(rotulo)][order(registros)]
+
+# ---- UI ----
+fluidRow(
+  column(
+    width = 3,
+    selectInput(
+      "sel_arquivo",
+      "Escolha pela sigla do PCDT:",
+      choices = setNames(lista$arquivo, lista$rotulo),
+      selected = if (nrow(lista)) lista$arquivo[1] else NULL
+    )
+  )
+)
+
+plotOutput("serie_xy", height = 280)
+
+# ---- função de leitura ----
+carrega_df <- function(nome) {
+  dest <- file.path(getwd(), nome)
+  if (!file.exists(dest)) {
+    dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+    h <- new_handle(userpwd = userpwd)
+    curl_download(paste0(url, nome), destfile = dest, mode = "wb", handle = h)
+  }
+  fread(dest)
+}
+
+# ---- server ----
+df_reactive <- reactive({
+  req(input$sel_arquivo)
+  carrega_df(input$sel_arquivo)
+})
+
+output$serie_xy <- renderPlot({
+  df <- df_reactive()
+  names(df) <- tolower(names(df))
+
+s <- df %>%
+  filter(
+    !is.na(nu_cnspcn),
+    qt_aprovada > 0
+  ) %>%
+  mutate(mes = ymd(paste0(nu_competencia, "01"))) %>%
+  group_by(mes) %>%
+  summarise(
+    usuarios    = n_distinct(nu_cnspcn),
+    qt_aprovada = sum(qt_aprovada, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+  # escala para eixo secundário
+  max_u  <- max(s$usuarios,    na.rm = TRUE)
+  max_qt <- max(s$qt_aprovada, na.rm = TRUE)
+  k <- if (is.finite(max_u) && is.finite(max_qt) && max_qt > 0) max_u / max_qt else 1
+
+  ggplot(s, aes(x = mes)) +
+    # série 1: usuários (eixo esquerdo)
+    geom_line(aes(y = usuarios), linewidth = 0.5) +
+    geom_point(aes(y = usuarios), size = 1.6) +
+    # série 2: qt_aprovada transformada (eixo direito)
+    geom_line(aes(y = qt_aprovada * k), linewidth = 0.5, linetype = "dashed") +
+    labs(x = "Mês", y = "Usuários distintos") +
+    scale_y_continuous(
+      name = "Usuários distintos",
+      sec.axis = sec_axis(~ . / k, name = "Quantidade aprovada")
+    ) +
+    scale_x_date(
+      date_breaks = "1 month",
+      labels = function(x) ifelse(month(x) == 1, format(x, "%Y"), ""),
+      expand = c(0.01, 0.01)
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+      axis.ticks.x = element_line(color = "grey40"),
+      axis.ticks.length.x = unit(0.15, "cm")
+    )
+})
+```
+
+---
+
+### Explicação do filtro e agregação (`dplyr`)
+
+O trecho de código abaixo prepara o conjunto de dados antes da visualização, aplicando filtros e agregações que reproduzem a lógica da query SQL original.
+
+```r
+s <- df %>%
+  # filtro da query: WHERE substr(no_origem,5,2) <> 25
+  filter(!is.na(nu_cnspcn),
+         qt_aprovada > 0 %>%
+  mutate(mes = ymd(paste0(nu_competencia, "01"))) %>%
+  group_by(mes) %>%
+  summarise(
+    usuarios    = n_distinct(nu_cnspcn),
+    qt_aprovada = sum(qt_aprovada, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+---
+
+#### 1. Filtro (`filter`)
+
+* `!is.na(nu_cnspcn)` remove registros sem identificação de usuário.
+* `qt_aprovada > 0` mantém apenas procedimentos com quantidade aprovada positiva.
+
+#### 2. Criação da variável de tempo (`mutate`)
+
+* `mutate(mes = ymd(paste0(nu_competencia, "01")))` transforma o campo `nu_competencia` (formato `YYYYMM`) em data (`YYYY-MM-01`) para uso correto no eixo X do gráfico.
+
+#### 3. Agregação (`group_by` + `summarise`)
+
+* `group_by(mes)` agrupa por mês de competência.
+* `n_distinct(nu_cnspcn)` calcula o número de usuários distintos no mês.
+* `sum(qt_aprovada, na.rm = TRUE)` soma a quantidade aprovada, ignorando `NA`.
+* `.groups = "drop"` evita manter a estrutura de agrupamento após a sumarização.
+
+O resultado é um *data frame* resumido por mês, com duas métricas principais:
+
+* **`usuarios`**: número de usuários únicos.
+* **`qt_aprovada`**: total de procedimentos aprovados.
+
 
 # Informações complementares
 
