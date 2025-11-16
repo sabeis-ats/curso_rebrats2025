@@ -186,8 +186,10 @@ if (!requireNamespace("tidyr", quietly=TRUE)) install.packages("tidyr")
 if (!requireNamespace("curl", quietly=TRUE)) install.packages("curl")
 if (!requireNamespace("data.table", quietly=TRUE)) install.packages("data.table")
 if (!requireNamespace("DT", quietly=TRUE)) install.packages("DT")
+if (!requireNamespace("lubridate", quietly=TRUE)) install.packages("lubridate")
 library(readr); library(dplyr); library(stringr); library(tidyr)
 library(DT); library(data.table); library(shiny); library(curl)
+library(lubridate)
 ```
 
 - Verifica se o pacote `curl` está instalado.  
@@ -234,17 +236,39 @@ O código retorna no console um vetor de strings, cada elemento representando um
 
 **Código e resultado**
 
-O script conecta-se ao servidor SFTP, autentica com usuário e senha, baixa o arquivo `0teste_058_fen_subgrupo604.20251104.80541.csv.gz` e o salva no computador no diretório de trabalho atual.
+O script conecta-se ao servidor SFTP, autentica com usuário e senha, baixa o arquivo `.csv.gz` e o salva no computador no diretório de trabalho atual.
 
 
 ```{r echo=TRUE}
-library(curl)
-url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
-userpwd <- "livre:12345"
-destino <- "0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
-h <- new_handle(userpwd = userpwd)
-# baixa em binário
+## 1) Filtrar arquivos .csv.gz
+arquivos_csv <- arquivos[grepl("\\.csv\\.gz$", arquivos)]
+## 2) Extrair o número imediatamente antes de .csv.gz
+##    Exemplo: nome.qualquer.1398.csv.gz -> 1398
+n_reg <- as.integer(sub(".*\\.([0-9]+)\\.csv\\.gz$", "\\1", arquivos_csv))
+
+## 3) Selecionar o primeiro arquivo com número < 20000
+idx <- which(n_reg < 20000)[1]
+arquivo_escolhido <- arquivos_csv[idx]
+
+cat("Arquivo escolhido:", arquivo_escolhido, "\n")
+
+```
+
+## baixar csv a partir do FTP
+
+**Código e resultado**
+
+O script conecta-se ao servidor SFTP, autentica com usuário e senha, baixa o arquivo `.csv.gz` e o salva no computador no diretório de trabalho atual.
+
+
+```{r echo=TRUE}
+## 4) Construir URL final e baixar
+url <- paste0("sftp://45.231.133.29:7891/srv/ftp/dadosabertos/", arquivo_escolhido)
+destino <- arquivo_escolhido
+
+h <- new_handle(userpwd = "livre:12345")
 curl_download(url, destfile = destino, mode = "wb", handle = h)
+
 cat("Arquivo salvo em:", destino, "\n")
 ```
 
@@ -255,7 +279,7 @@ Este exemplo mostra como baixar um arquivo remoto de um servidor SFTP e salvá-l
 ```r
 library(curl)
 
-url <- "sftp://45.231.133.29:7891/srv/ftp/dadosabertos/0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
+url <- paste0("sftp://45.231.133.29:7891/srv/ftp/dadosabertos/", destino)
 userpwd <- "livre:12345"
 destino <- "0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
 
@@ -287,7 +311,7 @@ cat("Arquivo salvo em:", destino, "\n")
 ```{r echo=TRUE}
 library(data.table)
 
-arquivo <- "0teste_058_fen_subgrupo604.20251104.80541.csv.gz"
+arquivo <- destino
 df <- fread(arquivo)
 
 # Ver estrutura
@@ -448,7 +472,7 @@ Ele segue uma lógica parecida com a do SQL, mas com uma sintaxe mais legível.
 
 ---
 
-### Exemplo simples
+### Exemplo
 
 ```r
 library(dplyr)
@@ -463,7 +487,6 @@ dados %>%
 Esse fluxo lê-se como uma sequência de etapas, conectadas pelo operador `%>%`, facilitando a leitura:
 **“Filtre, crie uma nova coluna, agrupe e resuma.”**
 
----
 
 ### Em resumo
 
