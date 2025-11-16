@@ -90,3 +90,72 @@ df <- fread(destino)
 
 dim(df)          # número de linhas e colunas
 df[1:3, 9:11]    # primeiras linhas, colunas 9 a 11
+````
+
+Saída ilustrativa (exemplo real):
+
+```text
+Arquivo salvo em: tf_sia_200801_pa_045_pom_subgrupo604.20251105.1398.csv.gz 
+
+[1] 1398   29
+
+         nu_cnspcn co_procedimento co_cidpri
+             <i64>           <int>    <char>
+1: 178772228470654       604240104      E740
+2: 172373491300552       604240104      E740
+3: 171277821143942       604240104      E740
+```
+
+---
+
+## 🧩 Público-alvo
+
+Profissionais dos **Núcleos de Avaliação de Tecnologias em Saúde (NATS)** com experiência prévia em R, interessados em ampliar a autonomia no acesso e análise de dados da SABEIS.
+
+---
+
+## 🧠 Equipe
+
+* **Docentes:** Felipe Ferré e Amanda Lyrio
+* **Monitores:** Mariá Pereira, Jéssica Barreto, Laís Lessa e Michael Ruberson
+* **Carga horária:** 12h | **Vagas:** 25
+* **Pré-requisito:** teste prático de domínio básico em R
+
+---
+
+## 🔗 Referências
+
+* [SABEIS - BD Geral](https://github.com/sabeis-ats/bd_geral)
+* [SABEIS - ETL](https://rpubs.com/sabeis/etl)
+* Ferré, F. *Modelagem e gestão de banco de dados com SQL e integração com o R.*
+  In: **Avaliação de impacto das políticas de saúde: um guia para o SUS**, Editora MS, 2023.
+* [Anais SBCAS 2020 – Sala de Situação SABEIS](https://sol.sbc.org.br/index.php/sbcas/article/view/11530)
+
+---
+
+## 📂 Como usar este repositório
+
+1. Clone ou baixe o repositório:
+
+```bash
+   git clone https://github.com/sabeis-ats/curso_rebrats2025.git
+```
+
+2. Abra o material no RStudio ou visualizador Markdown.
+3. Execute os exemplos de código em sequência, garantindo acesso à internet e às dependências R:
+
+```r
+   install.packages(c("curl", "data.table", "readr", "dplyr", "stringr", "tidyr"))
+```
+
+4. Explore os scripts e slides disponíveis para reproduzir as atividades práticas.
+
+---
+
+## 🏁 Licença
+
+Material didático de uso público, distribuído sob **Licença Creative Commons Atribuição (CC BY 4.0)**.
+Créditos obrigatórios: *Sala Aberta de Inteligência em Saúde (SABEIS / DGITS / SECTICS / Ministério da Saúde)*.
+
+```
+```
