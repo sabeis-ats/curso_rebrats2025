@@ -118,7 +118,7 @@ Profissionais dos **Núcleos de Avaliação de Tecnologias em Saúde (NATS)** co
 
 * **Docentes:** Felipe Ferré e Amanda Lyrio
 * **Monitores:** Mariá Pereira, Jéssica Barreto, Laís Lessa e Michael Ruberson
-* **Carga horária:** 12h | **Vagas:** 25
+* **Carga horária:** 8h 
 * **Pré-requisito:** teste prático de domínio básico em R
 
 ---
